@@ -33,66 +33,87 @@ int * *
 
 #include <iostream>
 #include <vector>
+#include <string>
+#include <map>
+#include <functional>
 using namespace std;
 
-
-int dpBagFun(const vector<int>& vtWeight, const vector<int>& vtValue, int num, int vulum)
+vector<string> split(const string& str, const string& delim)
 {
-	vector<vector<int>> dpBag(num, vector<int>(vulum + 1));
-	for (int i = 0; i < num; ++i) {
-		dpBag[i][0] = 0;
-	}
-	for (int i = 0; i < vulum + 1; ++i) {
-		if (vtWeight.at(0)>i) {
-			dpBag[0][i] = 0;
-		}
-		else {
-			dpBag[0][i] = vtValue.at(0);
-		}
-	}
-
-	for (int i = 1; i < num; ++i) {
-		for (int j = 1; j <= vulum; ++j) {
-			if (j < vtWeight.at(i)) {
-				dpBag[i][j] = dpBag[i - 1][j];
-			}
-			else {
-				int A = dpBag[i - 1][j - vtWeight.at(i)] + vtValue.at(i);
-				int B = dpBag[i - 1][j];
-				dpBag[i][j] = (A > B) ? A : B;
+	vector<string> vts;
+	string::size_type pos1 = 0;
+	string::size_type pos2 = str.find(delim, pos1);//从pos1开始搜索delim
+	while (string::npos != pos2) {//搜索越界则结束，行末有delim的情况，例如 1,2,3,
+		if (pos1 != pos2) {//排除字符串前面出现的delim,例如 ,1,2,3,
+			if (str.substr(pos1, pos2 - pos1) != delim) {//排除连续出现的,,
+				vts.push_back(str.substr(pos1, pos2 - pos1));
 			}
 		}
+		pos1 = pos2 + delim.size();
+		pos2 = str.find(delim, pos1);
 	}
-	return dpBag[num-1][vulum];
+	return vts;
 }
 
+bool findFun(const string& s2, const map<string, string, greater<string>>& m)
+{
+	for (auto a : m) {
+		if (s2.find(a.first) != string::npos) {
+			return true;
+		}
+	}
+	return false;
+}
 
 int main()
 {
-	int num = 0;
-	int vulum = 0;
-	cin >> num >> vulum;
+	//输入
+	string s1, s2;
+	getline(cin, s1);
+	cin >> s2;
 
-	vector<int> vtWeight;
-	vector<int> vtValue;
-	int tmpi;
-	for (int i = 0; i < num; ++i) {
-		cin >> tmpi;
-		vtWeight.push_back(tmpi);
+	map<string, string,greater<string>> m;
+
+	//第一次字符串分割，按';'
+	vector<string> sp = split(s1, ";");
+	//第二次字符串分割，按' '
+	for (auto a : sp) {
+		a.append(" ");
+		vector<string> tmp = split(a, " ");
+		m[tmp.at(2)] = tmp.at(1);
+
 	}
-	for (int i = 0; i < num; ++i) {
-		cin >> tmpi;
-		vtValue.push_back(tmpi);
+	
+	//替换
+	string s = s2;
+	while (findFun(s2, m)) {
+		for (auto a : m) {
+			if (s2.find(a.first) != string::npos) {
+				s2.replace(s2.find(a.first), a.first.size(), a.second);
+				break;
+			}
+		}
 	}
 
-	cout << dpBagFun(vtWeight, vtValue, num, vulum) << endl;
 
+	//输出
+	if (s == s2) {
+		cout << "none" << endl;
+	}
+	else {
+		//给'*'加' '
+		string s3;
+		s3.push_back(s2.at(0));
+		for (int i = 1; i < s2.size(); ++i) {
+			if (s2[i] == '*' && s2[i - 1] != ' ') {
+				s3.append(" *");
+			}
+			else {
+				s3.push_back(s2[i]);
+			}
+		}
+		cout << s3 << endl;
+	}
+	
 	system("pause");
-	getchar();
 }
-
-/*
-5 20
-2 3 4 5 9
-3 4 5 8 10
-*/
